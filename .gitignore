@@ -1,0 +1,18 @@
+# Архивные версии — не публикуются
+index-old.html
+index-v2.html
+index-v3.html
+index-v4-backup.html
+index-v4-before-fixes.html
+test-storage.html
+
+# Посторонние папки
+assets/
+agents/
+my_sait1/
+my_sait2/
+my-sait3/
+
+# Служебное
+.DS_Store
+Thumbs.db

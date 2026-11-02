@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'">
+  <title>Админ-панель — WebStudio</title>
+  <style>
+    :root {
+      --primary: #5b49e8;
+      --primary-dark: #4a3ad4;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f4f5f7;
+      --text: #0f0f0f;
+      --text-dim: #555;
+      --border: #e5e7eb;
+      --sidebar-w: 240px;
+      --header-h: 64px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── LOGIN ─── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #5b49e8 0%, #7c3aed 100%);
+      padding: 24px;
+    }
+
+    .login-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    }
+
+    .login-logo {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .login-box h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .login-box p {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .field { margin-bottom: 20px; }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(91,73,232,0.15);
+    }
+
+    .login-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 11px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; width: 100%; justify-content: center; font-size: 15px; padding: 14px; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { filter: brightness(1.1); }
+    .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-danger { background: #fef2f2; color: var(--danger); border: 1.5px solid #fecaca; }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-sm { padding: 7px 14px; font-size: 13px; }
+
+    /* ─── APP ─── */
+    #app { display: none; min-height: 100vh; }
+
+    /* HEADER */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-h);
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .header-logo {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+
+    .header-user {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-right: 8px;
+    }
+
+    /* LAYOUT */
+    .layout {
+      display: flex;
+      padding-top: var(--header-h);
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: #1a1a2e;
+      color: #fff;
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      padding: 24px 0;
+      z-index: 50;
+    }
+
+    .sidebar-section {
+      padding: 0 16px;
+      margin-bottom: 24px;
+    }
+
+    .sidebar-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #555a7a;
+      padding: 0 8px;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #a0a8c8;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 2px;
+    }
+
+    .sidebar-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+    .sidebar-item.active { background: var(--primary); color: #fff; }
+    .sidebar-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      margin-left: var(--sidebar-w);
+      padding: 32px;
+      max-width: calc(100% - var(--sidebar-w));
+    }
+
+    .page-head {
+      margin-bottom: 28px;
+    }
+
+    .page-head h2 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .page-head p { font-size: 14px; color: var(--text-dim); }
+
+    /* CARDS */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .icon { font-size: 18px; }
+
+    /* FIELDS */
+    .admin-field { margin-bottom: 18px; }
+
+    .admin-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .admin-field input,
+    .admin-field textarea,
+    .admin-field select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .admin-field input:focus,
+    .admin-field textarea:focus,
+    .admin-field select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(91,73,232,0.12);
+    }
+
+    .admin-field textarea { resize: vertical; min-height: 80px; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) { .field-row { grid-template-columns: 1fr; } }
+
+    /* STATS GRID */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } }
+
+    .stat-card {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-card label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    /* PRICING GRID */
+    .pricing-admin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) { .pricing-admin-grid { grid-template-columns: 1fr; } }
+
+    .price-admin-card {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .price-admin-card .card-name {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    /* FAQ */
+    .faq-admin-item {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .faq-admin-item .remove-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+    }
+
+    .faq-num {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: #0f0f0f;
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 9999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+
+    /* DIRTY BADGE */
+    .dirty-badge {
+      display: none;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .dirty-badge.show { display: inline-flex; align-items: center; gap: 4px; }
+
+    /* SECTION PAGES */
+    .section-page { display: none; }
+    .section-page.active { display: block; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; padding: 20px; max-width: 100%; }
+      .header { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="login-logo">◉ WebStudio</div>
+      <h1>Панель управления</h1>
+      <p>Войдите для редактирования сайта</p>
+      <div class="login-error" id="login-error">Неверный логин или пароль</div>
+      <form id="login-form">
+        <div class="field">
+          <label for="login">Логин</label>
+          <input type="text" id="login" autocomplete="username" placeholder="admin">
+        </div>
+        <div class="field">
+          <label for="password">Пароль</label>
+          <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary">Войти →</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-logo">◉ WebStudio Admin</div>
+      <div class="header-actions">
+        <span class="dirty-badge" id="dirty-badge">● Несохранённые изменения</span>
+        <a href="index-v4.html" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">🌐 Открыть сайт</a>
+        <button class="btn btn-success btn-sm" id="save-btn">💾 Сохранить</button>
+        <button class="btn btn-outline btn-sm" id="export-btn">⬇ Экспорт HTML</button>
+        <button class="btn btn-danger btn-sm" id="logout-btn">Выйти</button>
+      </div>
+    </header>
+
+    <!-- LAYOUT -->
+    <div class="layout">
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-label">Контент</div>
+          <div class="sidebar-item active" data-section="hero">
+            <span class="icon">🏠</span> Hero-секция
+          </div>
+          <div class="sidebar-item" data-section="contacts">
+            <span class="icon">📞</span> Контакты
+          </div>
+          <div class="sidebar-item" data-section="pricing">
+            <span class="icon">💰</span> Тарифы
+          </div>
+          <div class="sidebar-item" data-section="faq">
+            <span class="icon">❓</span> FAQ
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Инструменты</div>
+          <div class="sidebar-item" data-section="settings">
+            <span class="icon">⚙️</span> Настройки
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="main">
+
+        <!-- HERO -->
+        <div class="section-page active" id="page-hero">
+          <div class="page-head">
+            <h2>🏠 Hero-секция</h2>
+            <p>Главный экран сайта — заголовок, подзаголовок и статистика</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">📝</span> Текстовый контент</div>
+            <div class="admin-field">
+              <label for="hero-title">Заголовок</label>
+              <textarea id="hero-title" rows="2" data-key="hero.title"></textarea>
+            </div>
+            <div class="admin-field">
+              <label for="hero-subtitle">Подзаголовок</label>
+              <textarea id="hero-subtitle" rows="3" data-key="hero.subtitle"></textarea>
+            </div>
+            <div class="admin-field">
+              <label for="hero-badge">Бейдж (над заголовком)</label>
+              <input type="text" id="hero-badge" data-key="hero.badge">
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">📊</span> Статистика</div>
+            <div class="stats-grid" id="stats-grid"></div>
+          </div>
+        </div>
+
+        <!-- CONTACTS -->
+        <div class="section-page" id="page-contacts">
+          <div class="page-head">
+            <h2>📞 Контакты</h2>
+            <p>Телефон и email, которые отображаются на сайте</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">📱</span> Контактная информация</div>
+            <div class="field-row">
+              <div class="admin-field">
+                <label for="contact-phone">Телефон</label>
+                <input type="tel" id="contact-phone" data-key="contacts.phone" placeholder="+7 (495) 000-00-00">
+              </div>
+              <div class="admin-field">
+                <label for="contact-email">Email</label>
+                <input type="email" id="contact-email" data-key="contacts.email" placeholder="info@example.com">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRICING -->
+        <div class="section-page" id="page-pricing">
+          <div class="page-head">
+            <h2>💰 Тарифы</h2>
+            <p>Название, цена и список опций для каждого тарифа</p>
+          </div>
+          <div class="pricing-admin-grid" id="pricing-grid"></div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="section-page" id="page-faq">
+          <div class="page-head">
+            <h2>❓ FAQ</h2>
+            <p>Вопросы и ответы</p>
+          </div>
+          <div id="faq-list"></div>
+          <button class="btn btn-outline" id="add-faq-btn">+ Добавить вопрос</button>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="section-page" id="page-settings">
+          <div class="page-head">
+            <h2>⚙️ Настройки</h2>
+            <p>Управление данными и сессией</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">🗂</span> Данные</div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <button class="btn btn-outline" id="reset-btn">↩ Сбросить к defaults</button>
+              <button class="btn btn-danger" id="clear-btn">🗑 Очистить localStorage</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">🔑</span> Сменить пароль</div>
+            <div class="field-row">
+              <div class="admin-field">
+                <label for="new-pass">Новый пароль</label>
+                <input type="password" id="new-pass" placeholder="Новый пароль">
+              </div>
+              <div class="admin-field">
+                <label for="confirm-pass">Подтвердить</label>
+                <input type="password" id="confirm-pass" placeholder="Повторите пароль">
+              </div>
+            </div>
+            <button class="btn btn-primary" id="change-pass-btn" style="width:auto;">Сменить пароль</button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+  // ─── DEFAULTS ───
+  const DEFAULTS = {
+    hero: {
+      title: 'Сайт-визитка для вашего бизнеса за 3 дня',
+      subtitle: 'Создаём современные, быстрые сайты для малого бизнеса. От идеи до запуска — полный цикл под ключ за 72 часа',
+      badge: '✨ Быстрая разработка'
+    },
+    stats: [
+      { number: '50+', label: 'Довольных клиентов' },
+      { number: '3 дня', label: 'Средний срок' },
+      { number: '100%', label: 'Адаптивность' }
+    ],
+    contacts: {
+      phone: '+7 (495) 123-45-67',
+      email: 'info@webstudio.example'
+    },
+    pricing: [
+      { name: 'Лайт', price: '15 000₽', features: ['1 страница', 'Адаптивный дизайн', 'Контактная форма', 'Быстрая загрузка', '3 дня разработки'] },
+      { name: 'Стандарт', price: '30 000₽', features: ['3–5 страниц', 'Кастомный дизайн', 'Галерея и портфолио', 'Базовый SEO', '3 дня разработки'] },
+      { name: 'Премиум', price: '50 000₽', features: ['До 10 страниц', 'Расширенный дизайн', 'Блог и новости', 'Интеграции', 'SEO-оптимизация'] }
+    ],
+    faq: [
+      { q: 'Правда ли — сайт за 3 дня?', a: 'Да. Сайт-визитка (1–5 страниц) — 72 часа от согласования идеи до запуска. Сложные проекты обсуждаем отдельно.' },
+      { q: 'Сколько стоит сайт?', a: 'От 15 000₽ за одну страницу. Стандарт (3–5 страниц) — от 30 000₽. Точная цена зависит от задачи.' },
+      { q: 'Что входит в стоимость?', a: 'Дизайн, вёрстка, адаптивность, настройка домена и SSL, базовый SEO, тестирование. Без скрытых платежей.' },
+      { q: 'Нужен ли мне домен и хостинг?', a: 'Нет. Поможем с регистрацией домена и выбором хостинга. Или настроим на вашем. Всё сделаем сами.' },
+      { q: 'Смогу ли я редактировать сайт сам?', a: 'Да. Встроим простую панель управления или подключим CMS. Покажем как пользоваться.' },
+      { q: 'Есть ли поддержка после запуска?', a: '2 недели бесплатной поддержки — исправим баги, внесём правки. Далее — пакеты поддержки по договорённости.' }
+    ]
+  };
+
+  // ─── STATE ───
+  let data = JSON.parse(JSON.stringify(DEFAULTS));
+  let dirty = false;
+  const CREDS_KEY = 'ws_creds';
+  const DATA_KEY = 'ws_content';
+  const AUTH_KEY = 'ws_auth';
+
+  function getCreds() {
+    const c = localStorage.getItem(CREDS_KEY);
+    return c ? JSON.parse(c) : { login: 'admin', password: 'webstudio2026' };
+  }
+
+  // ─── AUTH ───
+  document.getElementById('login-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const creds = getCreds();
+    const login = document.getElementById('login').value.trim();
+    const pass = document.getElementById('password').value;
+    if (login === creds.login && pass === creds.password) {
+      localStorage.setItem(AUTH_KEY, '1');
+      showApp();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    if (dirty && !confirm('Есть несохранённые изменения. Выйти?')) return;
+    localStorage.removeItem(AUTH_KEY);
+    location.reload();
+  });
+
+  function showApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadData();
+    renderAll();
+  }
+
+  // ─── DATA ───
+  function loadData() {
+    const saved = localStorage.getItem(DATA_KEY);
+    if (saved) {
+      try { data = JSON.parse(saved); } catch(e) { data = JSON.parse(JSON.stringify(DEFAULTS)); }
+    } else {
+      data = JSON.parse(JSON.stringify(DEFAULTS));
+    }
+  }
+
+  function saveData() {
+    collectData();
+    console.log('💾 Сохраняю данные:', data);
+    localStorage.setItem(DATA_KEY, JSON.stringify(data));
+    dirty = false;
+    updateDirtyBadge();
+    showToast('✓ Изменения сохранены', 'success');
+    console.log('✅ Данные сохранены в localStorage под ключом:', DATA_KEY);
+  }
+
+  function collectData() {
+    // Hero
+    data.hero.title = document.getElementById('hero-title').value;
+    data.hero.subtitle = document.getElementById('hero-subtitle').value;
+    data.hero.badge = document.getElementById('hero-badge').value;
+
+    // Stats
+    data.stats.forEach((s, i) => {
+      s.number = document.getElementById('stat-num-' + i).value;
+      s.label = document.getElementById('stat-lbl-' + i).value;
+    });
+
+    // Contacts
+    data.contacts.phone = document.getElementById('contact-phone').value;
+    data.contacts.email = document.getElementById('contact-email').value;
+
+    // Pricing
+    data.pricing.forEach((p, i) => {
+      p.name = document.getElementById('price-name-' + i).value;
+      p.price = document.getElementById('price-val-' + i).value;
+      const featText = document.getElementById('price-features-' + i).value;
+      p.features = featText.split('\n').map(f => f.trim()).filter(Boolean);
+    });
+
+    // FAQ
+    const items = document.querySelectorAll('.faq-admin-item');
+    data.faq = Array.from(items).map(item => ({
+      q: item.querySelector('.faq-q').value,
+      a: item.querySelector('.faq-a').value
+    }));
+  }
+
+  function markDirty() {
+    dirty = true;
+    updateDirtyBadge();
+  }
+
+  function updateDirtyBadge() {
+    document.getElementById('dirty-badge').classList.toggle('show', dirty);
+  }
+
+  // ─── RENDER ───
+  function renderAll() {
+    // Hero
+    document.getElementById('hero-title').value = data.hero.title || '';
+    document.getElementById('hero-subtitle').value = data.hero.subtitle || '';
+    document.getElementById('hero-badge').value = data.hero.badge || '';
+
+    // Stats
+    const statsGrid = document.getElementById('stats-grid');
+    statsGrid.innerHTML = '';
+    data.stats.forEach((s, i) => {
+      statsGrid.innerHTML += `
+        <div class="stat-card">
+          <label>Блок ${i+1}</label>
+          <div class="admin-field" style="margin-bottom:8px">
+            <input type="text" id="stat-num-${i}" value="${esc(s.number)}" placeholder="Число" style="font-weight:700;font-size:18px;">
+          </div>
+          <div class="admin-field" style="margin-bottom:0">
+            <input type="text" id="stat-lbl-${i}" value="${esc(s.label)}" placeholder="Подпись">
+          </div>
+        </div>`;
+    });
+
+    // Contacts
+    document.getElementById('contact-phone').value = data.contacts.phone || '';
+    document.getElementById('contact-email').value = data.contacts.email || '';
+
+    // Pricing
+    const pricingGrid = document.getElementById('pricing-grid');
+    pricingGrid.innerHTML = '';
+    data.pricing.forEach((p, i) => {
+      pricingGrid.innerHTML += `
+        <div class="price-admin-card">
+          <div class="card-name">Тариф ${i+1}</div>
+          <div class="admin-field">
+            <label>Название</label>
+            <input type="text" id="price-name-${i}" value="${esc(p.name)}">
+          </div>
+          <div class="admin-field">
+            <label>Цена</label>
+            <input type="text" id="price-val-${i}" value="${esc(p.price)}">
+          </div>
+          <div class="admin-field">
+            <label>Опции (каждая с новой строки)</label>
+            <textarea id="price-features-${i}" rows="6">${esc((p.features||[]).join('\n'))}</textarea>
+          </div>
+        </div>`;
+    });
+
+    // FAQ
+    renderFaq();
+
+    // Listen for changes
+    document.querySelectorAll('#app input, #app textarea, #app select').forEach(el => {
+      el.addEventListener('input', markDirty);
+    });
+  }
+
+  function renderFaq() {
+    const list = document.getElementById('faq-list');
+    list.innerHTML = '';
+    data.faq.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'faq-admin-item';
+      div.innerHTML = `
+        <div class="faq-num">Вопрос ${i+1}</div>
+        <button class="btn btn-danger btn-sm remove-btn" data-index="${i}">✕ Удалить</button>
+        <div class="admin-field">
+          <label>Вопрос</label>
+          <input type="text" class="faq-q" value="${esc(item.q)}">
+        </div>
+        <div class="admin-field" style="margin-bottom:0">
+          <label>Ответ</label>
+          <textarea class="faq-a" rows="3">${esc(item.a)}</textarea>
+        </div>`;
+      list.appendChild(div);
+    });
+
+    list.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        collectData();
+        data.faq.splice(parseInt(btn.dataset.index), 1);
+        renderFaq();
+        markDirty();
+      });
+    });
+
+    list.querySelectorAll('input, textarea').forEach(el => {
+      el.addEventListener('input', markDirty);
+    });
+  }
+
+  // ─── NAVIGATION ───
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('page-' + item.dataset.section).classList.add('active');
+    });
+  });
+
+  // ─── BUTTONS ───
+  document.getElementById('save-btn').addEventListener('click', saveData);
+
+  document.getElementById('add-faq-btn').addEventListener('click', () => {
+    collectData();
+    data.faq.push({ q: 'Новый вопрос', a: 'Ответ на вопрос' });
+    renderFaq();
+    markDirty();
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (!confirm('Сбросить все изменения к значениям по умолчанию?')) return;
+    data = JSON.parse(JSON.stringify(DEFAULTS));
+    renderAll();
+    markDirty();
+    showToast('↩ Данные сброшены к defaults');
+  });
+
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    if (!confirm('Полностью очистить localStorage? Это удалит все сохранённые данные.')) return;
+    localStorage.removeItem(DATA_KEY);
+    data = JSON.parse(JSON.stringify(DEFAULTS));
+    renderAll();
+    dirty = false;
+    updateDirtyBadge();
+    showToast('🗑 localStorage очищен');
+  });
+
+  document.getElementById('change-pass-btn').addEventListener('click', () => {
+    const np = document.getElementById('new-pass').value;
+    const cp = document.getElementById('confirm-pass').value;
+    if (!np) { showToast('Введите новый пароль', 'error'); return; }
+    if (np !== cp) { showToast('Пароли не совпадают', 'error'); return; }
+    const creds = getCreds();
+    creds.password = np;
+    localStorage.setItem(CREDS_KEY, JSON.stringify(creds));
+    document.getElementById('new-pass').value = '';
+    document.getElementById('confirm-pass').value = '';
+    showToast('✓ Пароль изменён', 'success');
+  });
+
+  // ─── EXPORT ───
+  document.getElementById('export-btn').addEventListener('click', () => {
+    collectData();
+    const html = generateHTML();
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'index-v4.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('⬇ HTML экспортирован', 'success');
+  });
+
+  // ─── GENERATE HTML ───
+  function generateHTML() {
+    const d = data;
+    // Безопасная сериализация для встраивания в тег script (защита от закрывающего тега и U+2028/2029)
+    const safeJson = JSON.stringify(d, null, 2)
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029');
+    const faqItems = d.faq.map((item, i) => `
+        <div class="faq-item${i===0?' open':''}">
+          <button class="faq-btn" aria-expanded="${i===0}">
+            ${esc(item.q)}
+            <span class="faq-icon" aria-hidden="true">+</span>
+          </button>
+          <div class="faq-body">${esc(item.a)}</div>
+        </div>`).join('');
+
+    const pricingItems = d.pricing.map((p, i) => `
+        <div class="price-card${i===1?' pop':''}">
+          <div class="price-name">${esc(p.name)}</div>
+          <span class="price-val">${esc(p.price)}</span>
+          <div class="price-note">Единовременно</div>
+          <ul class="price-list">
+            ${(p.features||[]).map(f => `<li>${esc(f)}</li>`).join('\n            ')}
+          </ul>
+          <a href="#contact" class="btn ${i===1?'btn-accent':'btn-outline'}">Выбрать</a>
+        </div>`).join('');
+
+    return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <title>WebStudio — Сайты-визитки за 3 дня</title>
+  <!-- Экспортировано из админ-панели WebStudio -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <p style="font-family:sans-serif;padding:40px;text-align:center;color:#555;">
+    Это экспортированный файл. Для полного отображения откройте оригинальный <strong>index-v4.html</strong>
+    и обновите данные вручную на основе:
+    <br><br>
+    <strong>Заголовок:</strong> ${esc(d.hero.title)}<br>
+    <strong>Телефон:</strong> ${esc(d.contacts.phone)}<br>
+    <strong>Email:</strong> ${esc(d.contacts.email)}<br>
+    <strong>Тарифы:</strong> ${esc(d.pricing.map(p=>p.name+' '+p.price).join(', '))}<br>
+    <br>
+    <a href="index-v4.html" style="color:#5b49e8;">← Вернуться на сайт</a>
+  </p>
+  <script>
+    // Данные из админки
+    const siteData = ${safeJson};
+    console.log('Данные сайта:', siteData);
+  <\/script>
+</body>
+</html>`;
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── TOAST ───
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (type ? ' ' + type : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ─── BEFOREUNLOAD ───
+  window.addEventListener('beforeunload', e => {
+    if (dirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // ─── INIT ───
+  if (localStorage.getItem(AUTH_KEY) === '1') {
+    showApp();
+  }
+  </script>
+</body>
+</html>
